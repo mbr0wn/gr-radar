@@ -7,6 +7,7 @@
 //load generated python docstrings
 %include "radar_swig_doc.i"
 
+%ignore gr::radar::usrp::get_device;
 %{
 #include "radar/signal_generator_cw_c.h"
 #include "radar/signal_generator_fmcw_c.h"
@@ -38,8 +39,8 @@
 #include "radar/estimator_ofdm.h"
 #include "radar/estimator_rcs.h"
 #include "radar/trigger_command.h"
+#include "radar/usrp.h"
 %}
-
 
 %include "radar/signal_generator_cw_c.h"
 GR_SWIG_BLOCK_MAGIC2(radar, signal_generator_cw_c);
@@ -107,4 +108,7 @@ GR_SWIG_BLOCK_MAGIC2(radar, estimator_ofdm);
 GR_SWIG_BLOCK_MAGIC2(radar, estimator_rcs);
 %include "radar/trigger_command.h"
 GR_SWIG_BLOCK_MAGIC2(radar, trigger_command);
+
+%include "radar/usrp.h"
+GR_SWIG_BLOCK_MAGIC2(radar, usrp);
 

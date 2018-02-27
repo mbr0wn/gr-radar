@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<block>
+  <name>Radar USRP</name>
+  <key>variable_radar_usrp</key>
+  <category>[RADAR]/Hardware</category>
+  <import>import radar</import>
+  <var_make>$(id) = radar.usrp(
+    ",".join(($dev_addr, $dev_args)),
+    $is_tx,
+    $samp_rate, \# Sampling rate
+    $center_freq, \# Center freq
+    $gain, \# Gain
+    $lo_offset, \# LO Offset
+    $clock_source, \# Clock source
+    $time_source, \# Time source
+    $antenna, \# Antenna
+    $channels, \# Channel list
+    $subdev_spec, \# Subdev spec
+)</var_make>
+  <var_value>$dev_addr</var_value>
+  <make></make>
+  <param>
+    <name>Direction</name>
+    <key>is_tx</key>
+    <value>True</value>
+    <type>bool</type>
+    <option>
+      <name>Transmit</name>
+      <key>True</key>
+    </option>
+    <option>
+      <name>Receive</name>
+      <key>False</key>
+    </option>
+  </param>
+  <param>
+    <name>Device Address</name>
+    <key>dev_addr</key>
+    <value>type=x300</value>
+    <type>string</type>
+    <hide>
+      \#if \$dev_addr()
+      none
+      \#else
+      part
+      \#end if
+    </hide>
+  </param>
+  <param>
+    <name>Device Arguments</name>
+    <key>dev_args</key>
+    <value>""</value>
+    <type>string</type>
+    <hide>
+      \#if \$dev_args()
+      none
+      \#else
+      part
+      \#end if
+    </hide>
+  </param>
+  <param>
+    <name>Sample rate</name>
+    <key>samp_rate</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Center frequency</name>
+    <key>center_freq</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>LO offset</name>
+    <key>lo_offset</key>
+    <value>0</value>
+    <type>float</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Clock source</name>
+    <key>clock_source</key>
+    <value>'internal'</value>
+    <type>string</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Time source</name>
+    <key>time_source</key>
+    <value>'none'</value>
+    <type>string</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Antenna</name>
+    <key>antenna</key>
+    <type>string</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Gain</name>
+    <key>gain</key>
+    <type>float</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Channel list</name>
+    <key>channels</key>
+    <value>[0]</value>
+    <type>int_vector</type>
+    <hide>part</hide>
+  </param>
+  <param>
+    <name>Subdev Spec</name>
+    <key>subdev_spec</key>
+    <type>string</type>
+    <hide>part</hide>
+  </param>
+</block>

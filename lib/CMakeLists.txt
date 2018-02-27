@@ -34,10 +34,10 @@ include(GrPlatform) #define LIB_SUFFIX
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 list(APPEND radar_sources
-	${QTGUI_MOC_OUTFILES}
-	scatter_plot.cc
-	time_plot.cc
-	spectrogram_plot.cc
+    ${QTGUI_MOC_OUTFILES}
+    scatter_plot.cc
+    time_plot.cc
+    spectrogram_plot.cc
     signal_generator_cw_c_impl.cc
     signal_generator_fmcw_c_impl.cc
     split_cc_impl.cc
@@ -68,7 +68,8 @@ list(APPEND radar_sources
     estimator_ofdm_impl.cc
     estimator_rcs_impl.cc
     trigger_command_impl.cc
-    )
+    usrp_impl.cc
+)
 
 set(radar_sources "${radar_sources}" PARENT_SCOPE)
 if(NOT radar_sources)

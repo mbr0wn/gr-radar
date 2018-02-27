@@ -47,5 +47,6 @@ install(FILES
     radar_estimator_ofdm.xml
     radar_estimator_rcs.xml
     radar_trigger_command.xml
+    radar_usrp.xml
     DESTINATION share/gnuradio/grc/blocks
 )
