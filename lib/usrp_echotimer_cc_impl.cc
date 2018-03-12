@@ -25,127 +25,64 @@
 #include <gnuradio/io_signature.h>
 #include "usrp_echotimer_cc_impl.h"
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 namespace gr { namespace radar {
 
     usrp_echotimer_cc::sptr
     usrp_echotimer_cc::make(
-        int samp_rate,
-        float center_freq,
-        int num_delay_samps,
-        std::string args_tx,
-        std::string wire_tx,
-        std::string clock_source_tx,
-        std::string time_source_tx,
-        std::string antenna_tx,
-        float gain_tx,
-        float timeout_tx,
-        float wait_tx,
-        float lo_offset_tx,
-        std::string args_rx,
-        std::string wire_rx,
-        std::string clock_source_rx,
-        std::string time_source_rx,
-        std::string antenna_rx,
-        float gain_rx,
-        float timeout_rx,
-        float wait_rx,
-        float lo_offset_rx,
-        const std::string& len_key
+            uhd::usrp::multi_usrp::sptr tx_usrp,
+            uhd::usrp::multi_usrp::sptr rx_usrp,
+            int num_delay_samps,
+            std::string wire_tx,
+            float timeout_tx,
+            float wait_tx,
+            std::string wire_rx,
+            float timeout_rx,
+            float wait_rx,
+            const std::string& len_key
     ) {
         return gnuradio::get_initial_sptr(new usrp_echotimer_cc_impl(
-            samp_rate,
-            center_freq,
+            tx_usrp,
+            rx_usrp,
             num_delay_samps,
-            args_tx,
             wire_tx,
-            clock_source_tx,
-            time_source_tx,
-            antenna_tx,
-            gain_tx,
             timeout_tx,
             wait_tx,
-            lo_offset_tx,
-            args_rx,
             wire_rx,
-            clock_source_rx,
-            time_source_rx,
-            antenna_rx,
-            gain_rx,
             timeout_rx,
             wait_rx,
-            lo_offset_rx,
             len_key
         ));
     }
 
     usrp_echotimer_cc_impl::usrp_echotimer_cc_impl(
-        int samp_rate,
-        float center_freq,
-        int num_delay_samps,
-        std::string args_tx,
-        std::string wire_tx,
-        std::string clock_source_tx,
-        std::string time_source_tx,
-        std::string antenna_tx,
-        float gain_tx,
-        float timeout_tx,
-        float wait_tx,
-        float lo_offset_tx,
-        std::string args_rx,
-        std::string wire_rx,
-        std::string clock_source_rx,
-        std::string time_source_rx,
-        std::string antenna_rx,
-        float gain_rx,
-        float timeout_rx,
-        float wait_rx,
-        float lo_offset_rx,
-        const std::string& len_key
+            uhd::usrp::multi_usrp::sptr tx_usrp,
+            uhd::usrp::multi_usrp::sptr rx_usrp,
+            int num_delay_samps,
+            std::string wire_tx,
+            float timeout_tx,
+            float wait_tx,
+            std::string wire_rx,
+            float timeout_rx,
+            float wait_rx,
+            const std::string& len_key
     ) : gr::tagged_stream_block("usrp_echotimer_cc",
                 gr::io_signature::make(1, 1, sizeof(gr_complex)),
-                gr::io_signature::make(1, 1, sizeof(gr_complex)), len_key)
+                gr::io_signature::make(1, 1, sizeof(gr_complex)), len_key),
+        d_usrp_tx(tx_usrp),
+        d_usrp_rx(rx_usrp),
+        d_samp_rate(tx_usrp->get_tx_rate()),
     {
-        d_samp_rate = samp_rate;
         d_center_freq = center_freq;
         d_num_delay_samps = num_delay_samps;
         d_out_buffer.resize(0);
 
         //***** Setup USRP TX *****//
-        d_args_tx = args_tx;
         d_wire_tx = wire_tx;
-        d_clock_source_tx = clock_source_tx;
-        d_time_source_tx = time_source_tx;
-        d_antenna_tx = antenna_tx;
-        d_lo_offset_tx = lo_offset_tx;
-        d_gain_tx = gain_tx;
         d_timeout_tx = timeout_tx; // timeout for sending
         d_wait_tx = wait_tx; // secs to wait befor sending
-
-        // Setup USRP TX: args (addr,...)
-        d_usrp_tx = uhd::usrp::multi_usrp::make(d_args_tx);
-        std::cout << "Using USRP Device (TX): " << std::endl << d_usrp_tx->get_pp_string() << std::endl;
-
-        // Setup USRP TX: sample rate
-        std::cout << "Setting TX Rate: " << d_samp_rate << std::endl;
-        d_usrp_tx->set_tx_rate(d_samp_rate);
-        std::cout << "Actual TX Rate: " << d_usrp_tx->get_tx_rate() << std::endl;
-
-        // Setup USRP TX: gain
-        set_tx_gain(d_gain_tx);
-
-        // Setup USRP TX: tune request
-        d_tune_request_tx = uhd::tune_request_t(d_center_freq); // FIXME: add alternative tune requests
-        d_usrp_tx->set_tx_freq(d_tune_request_tx);
-
-        // Setup USRP TX: antenna
-        d_usrp_tx->set_tx_antenna(d_antenna_tx);
-
-        // Setup USRP TX: clock source
-        d_usrp_tx->set_clock_source(d_clock_source_tx); // Set TX clock, TX is master
-
-        // Setup USRP TX: time source
-        d_usrp_tx->set_time_source(d_time_source_tx); // Set TX time, TX is master
 
         // Setup USRP TX: timestamp
         if (d_time_source_tx != "gpsdo"){
@@ -167,31 +104,6 @@ namespace gr { namespace radar {
         d_timeout_rx = timeout_rx; // timeout for receiving
         d_wait_rx = wait_rx; // secs to wait befor receiving
 
-        // Setup USRP RX: args (addr,...)
-        d_usrp_rx = uhd::usrp::multi_usrp::make(d_args_rx);
-        std::cout << "Using USRP Device (RX): " << std::endl << d_usrp_rx->get_pp_string() << std::endl;
-
-        // Setup USRP RX: sample rate
-        std::cout << "Setting RX Rate: " << d_samp_rate << std::endl;
-        d_usrp_rx->set_rx_rate(d_samp_rate);
-        std::cout << "Actual RX Rate: " << d_usrp_rx->get_rx_rate() << std::endl;
-
-        // Setup USRP RX: gain
-        set_rx_gain(d_gain_rx);
-
-        // Setup USRP RX: tune request
-        d_tune_request_rx = uhd::tune_request_t(d_center_freq, d_lo_offset_rx); // FIXME: add alternative tune requests
-        d_usrp_rx->set_rx_freq(d_tune_request_rx);
-
-        // Setup USRP RX: antenna
-        d_usrp_rx->set_rx_antenna(d_antenna_rx);
-
-        // Setup USRP RX: clock source
-        d_usrp_rx->set_clock_source(d_clock_source_rx); // RX is slave, clock is set on TX
-
-        // Setup USRP RX: time source
-        d_usrp_rx->set_time_source(d_time_source_rx);
-
         // Setup receive streamer
         uhd::stream_args_t stream_args_rx("fc32", d_wire_rx); // complex floats
         std::vector<size_t> channel_nums; channel_nums.push_back(0); // define channel!
@@ -207,7 +119,7 @@ namespace gr { namespace radar {
         //uhd::set_thread_priority_safe(); // necessary? doesnt work...
 
         // Sleep to get sync done
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000)); // FIXME: necessary?
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // FIXME: necessary?
     }
 
     usrp_echotimer_cc_impl::~usrp_echotimer_cc_impl()

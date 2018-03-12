@@ -22,7 +22,7 @@
 #define INCLUDED_RADAR_USRP_ECHOTIMER_CC_IMPL_H
 
 #include <radar/usrp_echotimer_cc.h>
-
+#include <radar/usrp.h>
 #include <uhd/utils/thread_priority.hpp>
 #include <uhd/usrp/multi_usrp.hpp>
 
@@ -35,27 +35,15 @@ namespace gr { namespace radar {
 
     public:
         usrp_echotimer_cc_impl(
-            int samp_rate,
-            float center_freq,
+            uhd::usrp::multi_usrp::sptr tx_usrp,
+            uhd::usrp::multi_usrp::sptr rx_usrp,
             int num_delay_samps,
-            std::string args_tx,
             std::string wire_tx,
-            std::string clock_source_tx,
-            std::string time_source_tx,
-            std::string antenna_tx,
-            float gain_tx,
             float timeout_tx,
             float wait_tx,
-            float lo_offset_tx,
-            std::string args_rx,
             std::string wire_rx,
-            std::string clock_source_rx,
-            std::string time_source_rx,
-            std::string antenna_rx,
-            float gain_rx,
             float timeout_rx,
             float wait_rx,
-            float lo_offset_rx,
             const std::string& len_key
         );
         ~usrp_echotimer_cc_impl();
@@ -66,18 +54,21 @@ namespace gr { namespace radar {
         void set_rx_gain(float gain);
         void set_tx_gain(float gain);
 
+        int work(int noutput_items,
+                gr_vector_int &ninput_items,
+                gr_vector_const_void_star &input_items,
+                gr_vector_void_star &output_items);
+
+    private:
+        uhd::usrp::multi_usrp::sptr d_usrp_tx;
+        uhd::usrp::multi_usrp::sptr d_usrp_rx;
+
         int d_samp_rate;
-        float d_center_freq;
         int d_num_delay_samps;
         std::vector<gr_complex> d_out_buffer;
 
         std::string d_args_tx, d_args_rx;
-        std::string d_clock_source_tx, d_clock_source_rx;
         std::string d_wire_tx, d_wire_rx;
-        std::string d_antenna_tx, d_antenna_rx;
-        std::string d_time_source_tx, d_time_source_rx;
-        uhd::usrp::multi_usrp::sptr d_usrp_tx, d_usrp_rx;
-        uhd::tune_request_t d_tune_request_tx, d_tune_request_rx;
         uhd::tx_streamer::sptr d_tx_stream;
         uhd::rx_streamer::sptr d_rx_stream;
         uhd::tx_metadata_t d_metadata_tx;
@@ -98,11 +89,6 @@ namespace gr { namespace radar {
         gr_complex *d_in_send;
         int d_noutput_items_send;
 
-        // Where all the action really happens
-        int work(int noutput_items,
-                gr_vector_int &ninput_items,
-                gr_vector_const_void_star &input_items,
-                gr_vector_void_star &output_items);
     };
 
 }} // namespace gr::radar

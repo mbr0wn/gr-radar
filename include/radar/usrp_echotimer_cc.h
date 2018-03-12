@@ -22,6 +22,7 @@
 #define INCLUDED_RADAR_USRP_ECHOTIMER_CC_H
 
 #include <radar/api.h>
+#include <radar/usrp.h>
 #include <gnuradio/tagged_stream_block.h>
 
 namespace gr { namespace radar {
@@ -36,27 +37,16 @@ namespace gr { namespace radar {
       public:
           typedef boost::shared_ptr<usrp_echotimer_cc> sptr;
 
-          static sptr make(int samp_rate,
-              float center_freq,
+          static sptr make(
+              usrp::sptr tx_usrp,
+              usrp::sptr rx_usrp,
               int num_delay_samps,
-              std::string args_tx,
               std::string wire_tx,
-              std::string clock_source_tx,
-              std::string time_source_tx,
-              std::string antenna_tx,
-              float gain_tx,
               float timeout_tx,
               float wait_tx,
-              float lo_offset_tx,
-              std::string args_rx,
               std::string wire_rx,
-              std::string clock_source_rx,
-              std::string time_source_rx,
-              std::string antenna_rx,
-              float gain_rx,
               float timeout_rx,
               float wait_rx,
-              float lo_offset_rx,
               const std::string& len_key="packet_len"
           );
 
